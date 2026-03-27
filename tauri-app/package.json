@@ -1,0 +1,20 @@
+{
+  "name": "digit-recognizer",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "generate-icons": "tauri icon ./app-icon.svg -o ./src-tauri/icons",
+    "prepare-model": "node ./scripts/prepare-model.mjs",
+    "dev": "pnpm prepare-model && vite",
+    "build": "pnpm prepare-model && vite build",
+    "check:dist": "node ./scripts/check-file.mjs ./dist/model.onnx",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "onnxruntime-web": "^1.21.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "vite": "^6"
+  }
+}

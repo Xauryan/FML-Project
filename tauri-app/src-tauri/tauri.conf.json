@@ -1,0 +1,38 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "digit-recognizer",
+  "version": "1.0.0",
+  "identifier": "com.fml-project.digit-recognizer",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420",
+    "beforeDevCommand": "pnpm dev",
+    "beforeBuildCommand": "pnpm build"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "手写数字识别",
+        "width": 800,
+        "height": 600,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self' ipc: http://ipc.localhost https://ipc.localhost; worker-src 'self' blob:; child-src 'self' blob:;",
+      "devCsp": "default-src 'self' http://localhost:1420 data: blob:; img-src 'self' http://localhost:1420 data: blob:; style-src 'self' 'unsafe-inline' http://localhost:1420; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' http://localhost:1420; connect-src 'self' ipc: http://ipc.localhost https://ipc.localhost ws://localhost:1420 http://localhost:1420; worker-src 'self' blob:; child-src 'self' blob:;"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  }
+}

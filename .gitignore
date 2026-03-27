@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Models
+# *.h5
+# *.onnx
+*.dat
+
+# Outputs
+outputs/*
+!outputs/.gitkeep
+
+# Environment
+.env
+.venv/
+
+# IDE & OS
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+.trellis/
+.claude/
+.agents/
+AGENTS.md
+
+# Tauri
+tauri-app/node_modules/
+tauri-app/src-tauri/target/
+tauri-app/dist/

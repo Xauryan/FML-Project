@@ -1,0 +1,144 @@
+name: CI — PR Check
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-quality:
+    name: Python Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install pytest ruff
+
+      - name: Ruff check
+        run: ruff check --output-format=github .
+
+      - name: Ruff format check
+        run: ruff format --check .
+
+      - name: Compile Python modules
+        run: python -m compileall src scripts tests
+
+      - name: Run tests
+        run: pytest
+
+      - name: Export ONNX from .keras
+        run: python scripts/keras_to_onnx.py models/mnist.keras tauri-app/public/model.onnx
+
+  frontend-build:
+    name: Frontend Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: tauri-app/pnpm-lock.yaml
+
+      - name: Install npm dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: tauri-app
+
+      - name: Build frontend
+        run: pnpm build
+        working-directory: tauri-app
+
+      - name: Verify dist model
+        run: pnpm check:dist
+        working-directory: tauri-app
+
+  tauri-build-check:
+    name: Tauri Build Check (${{ matrix.os }})
+    needs: frontend-build
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: macos-latest
+            target: aarch64-apple-darwin
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: tauri-app/pnpm-lock.yaml
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: tauri-app/src-tauri -> target
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install npm dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: tauri-app
+
+      - name: Build frontend
+        run: pnpm build
+        working-directory: tauri-app
+
+      - name: Verify dist model
+        run: pnpm check:dist
+        working-directory: tauri-app
+
+      - name: Cargo check
+        run: cargo check
+        working-directory: tauri-app/src-tauri

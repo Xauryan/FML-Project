@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>手写数字识别</title>
+    <link rel="icon" type="image/svg+xml" href="./app-icon.svg" />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <div class="brand">
+          <img src="./app-icon.svg" alt="应用图标" class="app-logo" />
+          <div class="brand-copy">
+            <h1>手写数字识别</h1>
+            <p class="subtitle">基于 LeNet-5 · ONNX Runtime 推理</p>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section class="canvas-section">
+          <canvas id="draw-canvas" width="280" height="280"></canvas>
+          <div class="button-row">
+            <button id="btn-recognize" class="btn btn-primary">识别</button>
+            <button id="btn-clear" class="btn btn-secondary">清除</button>
+          </div>
+        </section>
+
+        <section class="result-section">
+          <div class="result-card">
+            <span class="result-label">预测结果</span>
+            <span id="result-digit" class="result-digit">?</span>
+            <span id="result-conf" class="result-conf">在左侧画布书写数字</span>
+          </div>
+          <div class="prob-bars" id="prob-bars"></div>
+        </section>
+      </main>
+
+      <footer>
+        <p>FML-Project · LeNet-5 手写数字识别与可视化分析</p>
+      </footer>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

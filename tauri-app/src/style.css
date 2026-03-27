@@ -1,0 +1,259 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #08111e;
+  --bg-alt: #0d1a2b;
+  --surface: rgba(17, 32, 51, 0.92);
+  --surface-hover: #19304b;
+  --border: #27415f;
+  --text: #edf4fa;
+  --text-muted: #8fa4b9;
+  --primary: #ff7a3d;
+  --primary-hover: #ff915b;
+  --accent: #47d6c6;
+  --danger: #ff6b6b;
+  --radius: 16px;
+  --shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background:
+    radial-gradient(circle at top right, rgba(255, 122, 61, 0.16), transparent 34%),
+    radial-gradient(circle at bottom left, rgba(71, 214, 198, 0.12), transparent 30%),
+    linear-gradient(180deg, var(--bg-alt) 0%, var(--bg) 100%);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  user-select: none;
+}
+
+.app {
+  width: 100%;
+  max-width: 820px;
+}
+
+/* Header */
+header {
+  margin-bottom: 32px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.app-logo {
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.22));
+}
+
+.brand-copy h1 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin-top: 6px;
+}
+
+/* Main layout */
+main {
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+}
+
+/* Canvas */
+.canvas-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+#draw-canvas {
+  background: #fff;
+  border-radius: var(--radius);
+  cursor: crosshair;
+  box-shadow: var(--shadow);
+  touch-action: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.button-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.btn {
+  flex: 1;
+  padding: 10px 28px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover {
+  background: var(--surface-hover);
+}
+
+/* Result */
+.result-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.result-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.result-label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+}
+
+.result-digit {
+  display: block;
+  font-size: 72px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--accent);
+  margin: 8px 0;
+  transition: color 0.2s;
+}
+
+.result-conf {
+  display: block;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* Probability bars */
+.prob-bars {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.prob-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.prob-row:last-child {
+  margin-bottom: 0;
+}
+
+.prob-label {
+  width: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: right;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.prob-bar-bg {
+  flex: 1;
+  height: 14px;
+  background: var(--bg);
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.prob-bar-fill {
+  height: 100%;
+  border-radius: 7px;
+  background: var(--primary);
+  transition: width 0.3s ease, background 0.3s ease;
+  min-width: 0;
+}
+
+.prob-bar-fill.top {
+  background: var(--accent);
+}
+
+.prob-value {
+  width: 42px;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  margin-top: 32px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .brand {
+    flex-direction: column;
+    text-align: center;
+  }
+  main {
+    flex-direction: column;
+    align-items: center;
+  }
+  .result-section {
+    width: 100%;
+  }
+  .button-row {
+    width: 100%;
+  }
+}
