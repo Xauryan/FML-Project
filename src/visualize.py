@@ -187,7 +187,7 @@ def visualize_feature_maps(model, image, show=True):
     feature_model = Model(
         inputs=model.inputs, outputs=[layer.output for layer in target_layers]
     )
-    feature_maps = feature_model.predict(image)
+    feature_maps = feature_model.predict(image, verbose=0)
     if not isinstance(feature_maps, list):
         feature_maps = [feature_maps]
 

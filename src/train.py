@@ -1,12 +1,20 @@
 from dataclasses import dataclass
+import argparse
 import csv
+import os
+import sys
 
-import matplotlib.pyplot as plt
+import matplotlib
 import numpy as np
 import seaborn as sns
 from keras.callbacks import EarlyStopping
 from keras.optimizers import Adam
 from sklearn.metrics import confusion_matrix
+
+if os.environ.get("DISPLAY") is None and sys.platform not in {"win32", "darwin"}:
+    matplotlib.use("Agg")
+
+import matplotlib.pyplot as plt
 
 from src.fonts import configure_matplotlib_chinese
 from src.modeling import (
@@ -38,8 +46,18 @@ class TrainingResult:
     saved_path: str
 
 
-def plot_training_curves(history, title_suffix="", filename="training_curves.png"):
+def _save_or_show(fig, filename, show):
+    fig.savefig(OUTPUT_DIR / filename, dpi=DPI, bbox_inches="tight")
+    if show:
+        plt.show()
+    plt.close(fig)
+
+
+def plot_training_curves(
+    history, title_suffix="", filename="training_curves.png", show=True
+):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4.5))
+    fig.patch.set_facecolor("#F6FAFD")
     epochs_range = range(1, len(history.history["loss"]) + 1)
 
     ax1.plot(
@@ -91,14 +109,13 @@ def plot_training_curves(history, title_suffix="", filename="training_curves.png
     ax2.grid(True, alpha=0.3)
 
     fig.tight_layout()
-    fig.savefig(OUTPUT_DIR / filename, dpi=DPI, bbox_inches="tight")
-    plt.show()
-    plt.close(fig)
+    _save_or_show(fig, filename, show)
 
 
-def plot_confusion_matrix(y_true, y_pred, filename="confusion_matrix.png"):
+def plot_confusion_matrix(y_true, y_pred, filename="confusion_matrix.png", show=True):
     cm = confusion_matrix(y_true, y_pred)
     fig, ax = plt.subplots(figsize=(8, 7))
+    fig.patch.set_facecolor("#F6FAFD")
     sns.heatmap(
         cm,
         annot=True,
@@ -115,13 +132,12 @@ def plot_confusion_matrix(y_true, y_pred, filename="confusion_matrix.png"):
     ax.set_ylabel("真实标签", fontsize=13)
     ax.set_title("混淆矩阵", fontsize=15, fontweight="bold")
     fig.tight_layout()
-    fig.savefig(OUTPUT_DIR / filename, dpi=DPI, bbox_inches="tight")
-    plt.show()
-    plt.close(fig)
+    _save_or_show(fig, filename, show)
 
 
-def plot_activation_comparison(results, filename="activation_comparison.png"):
+def plot_activation_comparison(results, filename="activation_comparison.png", show=True):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(13, 5))
+    fig.patch.set_facecolor("#F6FAFD")
     colors = {"tanh": PALETTE[0], "relu": PALETTE[1], "sigmoid": PALETTE[2]}
     markers = {"tanh": "o", "relu": "s", "sigmoid": "^"}
 
@@ -159,12 +175,10 @@ def plot_activation_comparison(results, filename="activation_comparison.png"):
     ax2.grid(True, alpha=0.3)
 
     fig.tight_layout()
-    fig.savefig(OUTPUT_DIR / filename, dpi=DPI, bbox_inches="tight")
-    plt.show()
-    plt.close(fig)
+    _save_or_show(fig, filename, show)
 
 
-def train_with_activation(activation, dataset):
+def train_with_activation(activation, dataset, show_plots=True):
     model = build_lenet5(activation=activation)
     model.compile(
         optimizer=Adam(learning_rate=0.001),
@@ -198,7 +212,10 @@ def train_with_activation(activation, dataset):
     saved_path = OUTPUT_DIR / f"lenet5_{activation}.keras"
     model.save(saved_path)
     plot_training_curves(
-        history, f" ({activation})", f"training_curves_{activation}.png"
+        history,
+        f" ({activation})",
+        f"training_curves_{activation}.png",
+        show=show_plots,
     )
 
     return model, TrainingResult(
@@ -245,7 +262,18 @@ def save_activation_results(results):
             )
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="训练 LeNet-5 并输出评估图表。")
+    parser.add_argument(
+        "--no-show",
+        action="store_true",
+        help="只保存图像，不弹出 matplotlib 窗口。",
+    )
+    return parser.parse_args()
+
+
 def main():
+    args = parse_args()
     set_random_seed()
     dataset = load_dataset()
     print(
@@ -265,7 +293,11 @@ def main():
         print(f"训练 LeNet-5 (激活函数: {activation})")
         print(f"{'=' * 50}")
 
-        model, result = train_with_activation(activation, dataset)
+        model, result = train_with_activation(
+            activation,
+            dataset,
+            show_plots=not args.no_show,
+        )
         print(
             f"[{activation}] 验证损失: {result.validation_loss:.4f}, "
             f"验证准确率: {result.validation_accuracy:.4f}, "
@@ -282,7 +314,7 @@ def main():
             best_result = result
             best_model = model
 
-    plot_activation_comparison(results)
+    plot_activation_comparison(results, show=not args.no_show)
 
     print(f"\n{'=' * 50}")
     print("激活函数对比结果汇总")
@@ -302,7 +334,11 @@ def main():
     )
 
     predictions = np.argmax(best_model.predict(dataset.test.images, verbose=0), axis=1)
-    plot_confusion_matrix(dataset.test.labels, predictions)
+    plot_confusion_matrix(
+        dataset.test.labels,
+        predictions,
+        show=not args.no_show,
+    )
 
     best_model.save(MODEL_PATH)
     print(f"最佳模型已保存为 {MODEL_PATH.name}")

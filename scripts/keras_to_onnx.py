@@ -5,8 +5,6 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from src.paths import MODEL_PATH, TAURI_MODEL_PATH, ensure_project_dirs
-
 
 def convert(model_path, onnx_path):
     import numpy as np
@@ -55,6 +53,8 @@ def convert(model_path, onnx_path):
 
 
 def main():
+    from src.paths import MODEL_PATH, TAURI_MODEL_PATH, ensure_project_dirs
+
     ensure_project_dirs()
     model_path = Path(sys.argv[1]) if len(sys.argv) > 1 else MODEL_PATH
     onnx_path = Path(sys.argv[2]) if len(sys.argv) > 2 else TAURI_MODEL_PATH

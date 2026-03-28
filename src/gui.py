@@ -41,7 +41,7 @@ class App(tk.Tk):
         self._current_probs = None
         self._set_window_icon()
         self._init_fonts()
-        self.model = load_digit_model()
+        self.model = None
 
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
@@ -114,6 +114,7 @@ class App(tk.Tk):
             foreground="#FFFFFF",
         )
         self.recognize_button.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self.recognize_button.disable()
         self.clear_button = self._create_button(
             buttons,
             text="清除",
@@ -173,7 +174,7 @@ class App(tk.Tk):
         ).pack(anchor="w")
         self.label_conf = tk.Label(
             conf_frame,
-            text="书写数字后点击识别",
+            text="正在加载模型...",
             font=self.fonts["body"],
             bg=THEME["surface"],
             fg=THEME["text_muted"],
@@ -274,6 +275,7 @@ class App(tk.Tk):
         self.bind("<Escape>", lambda _event: self._clear())
 
         self._render_bars(None)
+        self.after(40, self._load_model)
 
     def _init_fonts(self):
         family = tkfont.nametofont("TkDefaultFont").actual("family")
@@ -342,9 +344,10 @@ class App(tk.Tk):
         border_color=None,
     ):
         border_bg = border_color or background
-        outer = tk.Frame(parent, bg=border_bg, padx=1, pady=1)
+        button = tk.Frame(parent, bg=border_bg, padx=1, pady=1)
+        button.enabled = True
         inner = tk.Label(
-            outer,
+            button,
             text=text,
             font=self.fonts["button"],
             bg=background,
@@ -356,19 +359,45 @@ class App(tk.Tk):
         inner.pack(fill=tk.BOTH, expand=True)
 
         def on_enter(_e):
+            if not button.enabled:
+                return
             inner.configure(bg=active_background)
 
         def on_leave(_e):
-            inner.configure(bg=background)
+            inner.configure(bg=background if button.enabled else THEME["surface_alt"])
 
         def on_click(_e):
-            command()
+            if button.enabled:
+                command()
 
         inner.bind("<Enter>", on_enter)
         inner.bind("<Leave>", on_leave)
         inner.bind("<Button-1>", on_click)
 
-        return outer
+        def disable():
+            button.enabled = False
+            inner.configure(bg=THEME["surface_alt"], fg=THEME["text_muted"], cursor="arrow")
+
+        def enable():
+            button.enabled = True
+            inner.configure(bg=background, fg=foreground, cursor="hand2")
+
+        button.disable = disable
+        button.enable = enable
+        return button
+
+    def _load_model(self):
+        try:
+            self.model = load_digit_model()
+        except Exception as error:
+            self.label_conf.configure(
+                text=f"模型加载失败: {error}",
+                fg=THEME["danger"],
+            )
+            return
+
+        self.recognize_button.enable()
+        self.label_conf.configure(text="书写数字后点击识别", fg=THEME["text_muted"])
 
     def _schedule_bar_render(self, _event=None):
         if self._bar_render_job is not None:
@@ -434,7 +463,7 @@ class App(tk.Tk):
 
     def _classify(self):
         if self.model is None:
-            self.label_conf.configure(text="模型未加载", fg=THEME["danger"])
+            self.label_conf.configure(text="模型加载中，请稍候", fg=THEME["danger"])
             return
 
         digit, confidence, probs = predict_from_image(self.model, self._pil_image)
