@@ -7,7 +7,7 @@ import sys
 import matplotlib
 import numpy as np
 import seaborn as sns
-from keras.callbacks import EarlyStopping
+from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from keras.optimizers import Adam
 from sklearn.metrics import confusion_matrix
 
@@ -32,7 +32,7 @@ configure_matplotlib_chinese()
 PALETTE = sns.color_palette("Set2", 6)
 DPI = 200
 BATCH_SIZE = 32
-EPOCHS = 10
+EPOCHS = 20
 
 
 @dataclass(frozen=True)
@@ -187,7 +187,10 @@ def train_with_activation(activation, dataset, show_plots=True):
     )
 
     callbacks = [
-        EarlyStopping(monitor="val_loss", patience=2, restore_best_weights=True)
+        EarlyStopping(monitor="val_loss", patience=5, restore_best_weights=True),
+        ReduceLROnPlateau(
+            monitor="val_loss", factor=0.5, patience=2, min_lr=1e-6, verbose=1
+        ),
     ]
     history = model.fit(
         dataset.train.images,
